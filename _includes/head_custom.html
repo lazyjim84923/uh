@@ -1,0 +1,22 @@
+<style>
+/* 當螢幕夠大時，強制執行以下滿版排版，打破所有限制 */
+@media (min-width: 1024px) {
+  /* 1. 把左邊的目錄釘死在最左邊 */
+  .side-bar {
+    left: 0 !important;
+    width: 264px !important;
+  }
+  
+  /* 2. 把右邊的主要區塊往左拉，貼齊目錄，並取消置中 */
+  .main {
+    max-width: none !important;
+    margin-left: 264px !important;
+    margin-right: 0 !important;
+  }
+  
+  /* 3. 把內文的寬度限制徹底打破，讓它填滿螢幕右半邊 */
+  .main-content-wrap {
+    max-width: none !important;
+  }
+}
+</style>
