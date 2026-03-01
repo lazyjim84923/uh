@@ -1,9 +1,17 @@
-/* 讓整個網頁外框解除限制，貼齊螢幕最左側 */
-.page-wrap {
-    max-width: 100% !important;
-}
-
-/* 讓右邊的文字內容也跟著解除寬度限制，像 CHM 說明書一樣填滿畫面 */
-.main-content-wrap {
-    max-width: 100% !important;
+@media (min-width: 1024px) {
+  /* 1. 讓側邊欄固定在最左邊，並設定為預設的 264px 寬度 */
+  .side-bar {
+    width: 264px !important;
+  }
+  
+  /* 2. 讓右側主要內容往左靠，完美接在側邊欄旁邊 */
+  .main {
+    margin-left: 264px !important;
+  }
+  
+  /* 3. 解除主要內容的寬度限制，讓它填滿右邊剩下的所有螢幕空間 */
+  .main-content-wrap {
+    max-width: none !important;
+    padding-right: 40px; /* 在最右側留一點點呼吸空間，避免文字完全貼壁 */
+  }
 }
