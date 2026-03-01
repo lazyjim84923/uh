@@ -1,0 +1,10 @@
+<script>
+  // 等待搜尋引擎載入後，強制開啟中文分詞模式
+  var fixSearch = setInterval(function(){
+    if (window.lunr) {
+      // 告訴 Lunr：只要看到中文字就當作一個詞，不需要空格也能搜
+      window.lunr.tokenizer.separator = /[\s\-\p{P}]+|(?=[\u4e00-\u9fa5])/u;
+      clearInterval(fixSearch);
+    }
+  }, 500);
+</script>
