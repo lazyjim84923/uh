@@ -1,25 +1,39 @@
 <script>
-// 完全接管搜尋引擎，修正隱形字錯誤，並恢復預覽功能
-if (window.lunr) {
-  window.lunr.tokenizer = function(obj) {
-    if (!arguments.length || obj == null || obj == undefined) return [];
-    if (Array.isArray(obj)) return obj.map(function(t) { return new window.lunr.Token(t.toLowerCase()); });
+window.addEventListener('load', function() {
+  if (window.lunr && window.jtd && window.jtd.search) {
+    // 1. 關閉「英文修剪器」，阻止系統擅自刪除中文字！(這是之前錯誤的真兇)
+    lunr.trimmer = function(token) { return token; };
+    lunr.Pipeline.registerFunction(lunr.trimmer, 'trimmer');
     
-    var str = obj.toString().toLowerCase();
-    var tokens = [];
-    // 規則：英數字視為一個單字保留，中文字則逐字精準切分
-    var regex = /[a-zA-Z0-9]+|[\u4e00-\u9fa5]/g; 
-    var match;
-    var idx = 0;
-    
-    while ((match = regex.exec(str)) !== null) {
-      // 紀錄每個字元的「確切位置」，這是讓預覽文字成功顯示的關鍵！
-      tokens.push(new window.lunr.Token(match[0], {
-        position: [match.index, match[0].length],
-        index: idx++
-      }));
-    }
-    return tokens;
-  };
-}
+    // 2. 設定中文的切字規則
+    lunr.tokenizer.separator = /[\s\-\p{P}]+|(?=[\u4e00-\u9fa5])/u;
+
+    // 3. 從後台重新抓取你的 TRPG 規則書資料，用「中文大腦」重新建立索引
+    var xhr = new XMLHttpRequest();
+    // 鎖定你的專屬路徑 /uh
+    xhr.open('GET', '/uh/assets/js/search-data.json', true);
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        var docs = JSON.parse(xhr.responseText);
+        jtd.search.index = lunr(function () {
+          this.ref('id');
+          this.field('title', { boost: 200 });
+          this.field('content', { boost: 2 });
+          this.field('relUrl');
+          this.metadataWhitelist = ['position']; // 保留預覽文字的位置座標
+          for (var key in docs) {
+            this.add({
+              id: key,
+              title: docs[key].title,
+              content: docs[key].content,
+              relUrl: docs[key].relUrl
+            });
+          }
+        });
+        jtd.search.docs = docs;
+      }
+    };
+    xhr.send();
+  }
+});
 </script>
