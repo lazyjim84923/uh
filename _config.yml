@@ -7,13 +7,6 @@ baseurl: /uh
 
 search_enabled: true
 search_placeholder_text: 搜尋規則書內容...
-# 啟用中文搜尋插件
 search:
-  # 調整搜尋權重，讓標題 (title) 的優先順序高於內文 (content)
-  fields:
-    title: { boost: 10 }
-    content: { boost: 1 }
-  # 限制預覽文字的長度，確保它能顯示出來
-  preview_words_num: 30
-  # 修正分詞器，讓它在標點符號處斷開，而不是每個字都斷開
+  # 只在遇到空白或特殊符號時切分，中文字則保持原樣交給插件處理
   tokenizer_separator: /[\s\-\p{P}]+/u
