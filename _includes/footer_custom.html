@@ -1,0 +1,25 @@
+<script>
+// 完全接管搜尋引擎，修正隱形字錯誤，並恢復預覽功能
+if (window.lunr) {
+  window.lunr.tokenizer = function(obj) {
+    if (!arguments.length || obj == null || obj == undefined) return [];
+    if (Array.isArray(obj)) return obj.map(function(t) { return new window.lunr.Token(t.toLowerCase()); });
+    
+    var str = obj.toString().toLowerCase();
+    var tokens = [];
+    // 規則：英數字視為一個單字保留，中文字則逐字精準切分
+    var regex = /[a-zA-Z0-9]+|[\u4e00-\u9fa5]/g; 
+    var match;
+    var idx = 0;
+    
+    while ((match = regex.exec(str)) !== null) {
+      // 紀錄每個字元的「確切位置」，這是讓預覽文字成功顯示的關鍵！
+      tokens.push(new window.lunr.Token(match[0], {
+        position: [match.index, match[0].length],
+        index: idx++
+      }));
+    }
+    return tokens;
+  };
+}
+</script>
