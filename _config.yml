@@ -8,8 +8,9 @@ baseurl: /uh
 search_enabled: true
 search_placeholder_text: 搜尋規則書內容...
 
-# 核心搜尋設定：強制開啟中文分詞支援
+# 核心搜尋設定：精準分詞模式
 search:
-  tokenizer_separator: /[\s\-\p{P}]+|(?=[\u4e00-\u9fa5])/u
-  preview_words_before: 10
-  preview_words_after: 10
+  # 此規則會切分中文字，但嚴格排除空白、標點符號與特殊字元
+  tokenizer_separator: /[\s!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~]+|(?=[\u4e00-\u9fa5])/u
+  preview_words_before: 5
+  preview_words_after: 5
