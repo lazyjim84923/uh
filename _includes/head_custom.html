@@ -1,0 +1,88 @@
+<script>
+window.addEventListener('load', function() {
+    // 取得搜尋框與預覽區塊
+    var searchInput = document.getElementById('search-input');
+    var searchResults = document.getElementById('search-results');
+    if (!searchInput || !searchResults) return;
+
+    // 取得你的專案網址基底 (例如 /uh)
+    var baseUrl = '{{ site.baseurl }}';
+
+    // 複製並替換搜尋框，藉此強制「殺死」原本會把中文刪掉的笨蛋引擎
+    var newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+    // 去後台抓取你的 TRPG 規則書所有文字
+    fetch(baseUrl + '/assets/js/search-data.json')
+        .then(response => response.json())
+        .then(data => {
+            var docs = Object.values(data); // 轉成陣列方便搜尋
+
+            // 當你在搜尋框打字時，啟動我們的中文專屬引擎
+            newSearchInput.addEventListener('input', function(e) {
+                var keyword = e.target.value.trim().toLowerCase();
+                searchResults.innerHTML = '';
+                
+                if (!keyword) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                searchResults.style.display = 'block';
+
+                // 只要標題或內文有包含這個字，就抓出來
+                var results = docs.filter(doc => 
+                    (doc.title || '').toLowerCase().includes(keyword) || 
+                    (doc.content || '').toLowerCase().includes(keyword)
+                );
+
+                // 找不到結果的畫面
+                if (results.length === 0) {
+                    searchResults.innerHTML = '<ul class="search-results-list"><li class="search-result-item" style="padding: 1rem; color: #888;">找不到結果</li></ul>';
+                    return;
+                }
+
+                // 組合漂亮預覽畫面的 HTML
+                var html = '<ul class="search-results-list">';
+                results.slice(0, 15).forEach(doc => {
+                    var title = doc.title || '無標題';
+                    var content = doc.content || '';
+                    var url = doc.url || doc.relUrl || '';
+                    if (!url.startsWith(baseUrl)) { url = baseUrl + (url.startsWith('/') ? '' : '/') + url; }
+
+                    var snippet = '';
+                    var matchIdx = content.toLowerCase().indexOf(keyword);
+                    if (matchIdx !== -1) {
+                        // 擷取關鍵字前後 15 個字
+                        var start = Math.max(0, matchIdx - 15);
+                        var end = Math.min(content.length, matchIdx + keyword.length + 15);
+                        snippet = content.substring(start, end);
+                        // 把你搜的關鍵字加上黃色高光背景
+                        var regex = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                        snippet = snippet.replace(regex, '<b style="background-color:rgba(255,212,0,0.5); border-radius:3px; padding:0 2px;">$1</b>');
+                        snippet = (start > 0 ? '...' : '') + snippet + (end < content.length ? '...' : '');
+                    } else {
+                        snippet = content.substring(0, 30) + '...';
+                    }
+
+                    html += '<li class="search-result-item"><a href="' + url + '" class="search-result-link">';
+                    html += '<div class="search-result-title">' + title + '</div>';
+                    html += '<div class="search-result-doc" style="font-size: 0.9em; margin-top: 5px; line-height: 1.5;">' + snippet + '</div>';
+                    html += '</a></li>';
+                });
+                html += '</ul>';
+                searchResults.innerHTML = html;
+            });
+
+            // 點擊旁邊空白處時自動隱藏選單
+            document.addEventListener('click', function(e) {
+                if (!newSearchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.style.display = 'none';
+                }
+            });
+            // 點擊搜尋框時再度顯示
+            newSearchInput.addEventListener('focus', function() {
+                if (newSearchInput.value.trim()) searchResults.style.display = 'block';
+            });
+        });
+});
+</script>
