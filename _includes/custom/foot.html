@@ -1,18 +1,13 @@
 <script>
 window.addEventListener('load', function() {
   if (window.lunr && window.jtd) {
-    // 1. 殺死會把中文當標點符號刪除的笨蛋修剪器
-    window.lunr.trimmer = function(token) { return token; };
-    window.lunr.Pipeline.registerFunction(window.lunr.trimmer, 'trimmer');
-    
-    // 2. 完美的中文分詞器（精準切分中文字，排除隱形空白）
-    window.lunr.tokenizer = function (obj) {
+    // 1. 定義完美的中文分詞器
+    var customTokenizer = function (obj) {
         if (!arguments.length || obj == null || obj == undefined) return [];
         if (Array.isArray(obj)) return obj.map(function (t) { return new window.lunr.Token(t.toLowerCase()); });
 
         var str = obj.toString().toLowerCase();
         var tokens = [];
-        // 規則：保留英數字，並將中文字「逐字」精準切開
         var regex = /[a-zA-Z0-9]+|[\u4e00-\u9fa5]/g; 
         var match;
         var idx = 0;
@@ -26,18 +21,29 @@ window.addEventListener('load', function() {
         return tokens;
     };
 
-    // 3. 重新抓取資料，強制覆蓋模板原本的英文大腦
+    // 替換全域分詞器（讓輸入框也使用中文分詞）
+    window.lunr.tokenizer = customTokenizer;
+
+    // 2. 重新抓取資料並建立「無修剪」的乾淨索引
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/uh/assets/js/search-data.json', true);
     xhr.onload = function () {
       if (xhr.status === 200) {
         var docs = JSON.parse(xhr.responseText);
+        
         window.jtd.searchIndex = window.lunr(function () {
           this.ref('id');
           this.field('title', { boost: 200 });
           this.field('content', { boost: 2 });
           this.field('relUrl');
-          this.metadataWhitelist = ['position']; // 讓預覽文字正確顯示的關鍵
+          this.metadataWhitelist = ['position']; // 這是預覽文字的關鍵
+          
+          this.tokenizer = customTokenizer;
+          
+          // 【核彈級修復】：直接清空所有的英文修剪規則！
+          // 徹底阻止系統把中文字當作「無效符號」偷偷刪除
+          this.pipeline.reset();
+          this.searchPipeline.reset();
           
           for (var key in docs) {
             this.add({
