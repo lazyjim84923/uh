@@ -1,9 +1,6 @@
-title: 村民式毒物流TRPG 0.0.1
-description: 核心規則書與判定指南
-theme: just-the-docs
+title: "無限流TRPG 3.0"
+description: "核心規則書與判定指南"
+theme: "just-the-docs"
 
-url: https://lazyjim84923.github.io
-baseurl: /uh
-
-search_enabled: true
-search_placeholder_text: 搜尋規則書內容...
+url: "https://lazyjim84923.github.io"
+baseurl: "/uh"
