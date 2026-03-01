@@ -7,3 +7,6 @@ baseurl: /uh
 
 search_enabled: true
 search_placeholder_text: 搜尋規則書內容...
+# 啟用中文搜尋插件
+search:
+  tokenizer_separator: /[\s\-\p{P}]+|(?=[\u4e00-\u9fa5])/u
