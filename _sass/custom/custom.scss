@@ -9,14 +9,15 @@
   
   /* 2. 把右邊的主要區塊往左拉，貼齊目錄，並取消置中 */
   .main {
-    max-width: none !important;
+    max-width: 100% !important;
     margin-left: 264px !important;
     margin-right: 0 !important;
   }
   
-  /* 3. 把內文的寬度限制徹底打破，讓它填滿螢幕右半邊 */
-  .main-content-wrap {
-    max-width: none !important;
+  /* 3. 把內文的「兩層」寬度限制徹底打破，讓它填滿螢幕右半邊 */
+  .main-content-wrap,
+  .main-content {
+    max-width: 100% !important;
   }
 }
 </style>
