@@ -1,0 +1,2 @@
+/* lunr.stemmer.support.js - 讓搜尋引擎支援非英文語系的基礎插件 */
+!function(){window.lunr&&(window.lunr.stemmerSupport=function(e){var r=function(e){return e};return e.pipeline.registerFunction(r,"stemmerSupport"),r},window.lunr.generateStopWordFilter=function(e){var r=e.reduce(function(e,r){return e[r]=r,e},{});return function(e){return e&&e.toString()!==r[e.toString()]?e:void 0}},window.lunr.trimmer=function(e){return e.replace(/^\P{L}+/u,"").replace(/\P{L}+$/u,"")},e.pipeline.registerFunction(window.lunr.trimmer,"trimmer"))}();
