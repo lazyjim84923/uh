@@ -7,6 +7,3 @@ baseurl: /uh
 
 search_enabled: true
 search_placeholder_text: 搜尋規則書內容...
-search:
-  # 只在遇到空白或特殊符號時切分，中文字則保持原樣交給插件處理
-  tokenizer_separator: /[\s\-\p{P}]+/u
