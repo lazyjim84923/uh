@@ -1,3 +1,9 @@
-.container {
+/* 讓整個網頁外框解除限制，貼齊螢幕最左側 */
+.page-wrap {
+    max-width: 100% !important;
+}
+
+/* 讓右邊的文字內容也跟著解除寬度限制，像 CHM 說明書一樣填滿畫面 */
+.main-content-wrap {
     max-width: 100% !important;
 }
