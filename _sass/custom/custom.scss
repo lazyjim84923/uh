@@ -1,23 +1,25 @@
 <style>
-/* 當螢幕夠大時，強制執行以下滿版排版，打破所有限制 */
+/* 終極寬度破解：強制計算與填滿 */
 @media (min-width: 1024px) {
-  /* 1. 把左邊的目錄釘死在最左邊 */
+  /* 側邊欄：釘死在左邊，寬度 264px */
   .side-bar {
     left: 0 !important;
     width: 264px !important;
   }
   
-  /* 2. 把右邊的主要區塊往左拉，貼齊目錄，並取消置中 */
+  /* 主要區塊：強制拿走扣除側邊欄之後的所有剩餘空間 */
   .main {
-    max-width: 100% !important;
+    max-width: none !important;
     margin-left: 264px !important;
     margin-right: 0 !important;
+    width: calc(100% - 264px) !important; 
   }
   
-  /* 3. 把內文的「兩層」寬度限制徹底打破，讓它填滿螢幕右半邊 */
+  /* 內文區塊：解除所有最大寬度限制，強制 100% 填滿主要區塊 */
   .main-content-wrap,
   .main-content {
-    max-width: 100% !important;
+    max-width: none !important;
+    width: 100% !important;
   }
 }
 </style>
