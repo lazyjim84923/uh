@@ -1,0 +1,13 @@
+<script>
+/* 讓搜尋引擎看懂中文：強制將中文字逐字切開 */
+function fixChineseSearch() {
+  if (window.lunr) {
+    // 遇到空白、標點符號或「中文字」時就切開，讓每個中文字都能被搜尋
+    window.lunr.tokenizer.separator = /[\s\-\p{P}]+|(?=[\u4e00-\u9fa5])/u;
+  } else {
+    // 如果搜尋引擎還沒準備好，就等 0.1 秒後再試一次
+    setTimeout(fixChineseSearch, 100);
+  }
+}
+fixChineseSearch();
+</script>
