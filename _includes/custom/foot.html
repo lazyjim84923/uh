@@ -1,63 +1,89 @@
 <script>
 window.addEventListener('load', function() {
-  if (window.lunr && window.jtd) {
-    // 1. 定義完美的中文分詞器
-    var customTokenizer = function (obj) {
-        if (!arguments.length || obj == null || obj == undefined) return [];
-        if (Array.isArray(obj)) return obj.map(function (t) { return new window.lunr.Token(t.toLowerCase()); });
+    var searchInput = document.getElementById('search-input');
+    var searchResults = document.getElementById('search-results');
+    if (!searchInput || !searchResults) return;
 
-        var str = obj.toString().toLowerCase();
-        var tokens = [];
-        var regex = /[a-zA-Z0-9]+|[\u4e00-\u9fa5]/g; 
-        var match;
-        var idx = 0;
-
-        while ((match = regex.exec(str)) !== null) {
-            tokens.push(new window.lunr.Token(match[0], {
-                position: [match.index, match[0].length],
-                index: idx++
-            }));
-        }
-        return tokens;
-    };
-
-    // 替換全域分詞器（讓輸入框也使用中文分詞）
-    window.lunr.tokenizer = customTokenizer;
-
-    // 2. 重新抓取資料並建立「無修剪」的乾淨索引
+    // 1. 直接讀取你的 TRPG 規則資料庫
+    var docs = [];
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/uh/assets/js/search-data.json', true);
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        var docs = JSON.parse(xhr.responseText);
-        
-        window.jtd.searchIndex = window.lunr(function () {
-          this.ref('id');
-          this.field('title', { boost: 200 });
-          this.field('content', { boost: 2 });
-          this.field('relUrl');
-          this.metadataWhitelist = ['position']; // 這是預覽文字的關鍵
-          
-          this.tokenizer = customTokenizer;
-          
-          // 【核彈級修復】：直接清空所有的英文修剪規則！
-          // 徹底阻止系統把中文字當作「無效符號」偷偷刪除
-          this.pipeline.reset();
-          this.searchPipeline.reset();
-          
-          for (var key in docs) {
-            this.add({
-              id: key,
-              title: docs[key].title,
-              content: docs[key].content,
-              relUrl: docs[key].relUrl
-            });
-          }
-        });
-        window.jtd.searchDocs = docs;
-      }
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            for (var key in data) { docs.push(data[key]); }
+        }
     };
     xhr.send();
-  }
+
+    // 2. 徹底開除原本的英文搜尋引擎 (Lunr.js)，換成我們的
+    var newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    searchInput = newSearchInput;
+
+    // 3. 啟動無敵中文搜尋邏輯
+    searchInput.addEventListener('input', function(e) {
+        var keyword = e.target.value.trim().toLowerCase();
+        searchResults.innerHTML = '';
+        
+        if (!keyword) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        searchResults.style.display = 'block';
+
+        // 只要字串裡有包含，就絕對逃不掉 (完美支援中文)
+        var results = docs.filter(function(doc) {
+            var t = (doc.title || '').toLowerCase();
+            var c = (doc.content || '').toLowerCase();
+            return t.indexOf(keyword) !== -1 || c.indexOf(keyword) !== -1;
+        });
+
+        if (results.length === 0) {
+            searchResults.innerHTML = '<ul class="search-results-list"><li class="search-result-item" style="padding: 1rem; color: #888;">找不到結果</li></ul>';
+            return;
+        }
+
+        var html = '<ul class="search-results-list">';
+        results.slice(0, 15).forEach(function(doc) {
+            var title = doc.title || '無標題';
+            var content = doc.content || '';
+            var url = doc.url || doc.relUrl || '';
+            if (!url.startsWith('/uh')) { url = '/uh' + (url.startsWith('/') ? '' : '/') + url; }
+
+            // 產生上下文預覽，並加上黃色高光
+            var snippet = '';
+            var matchIdx = content.toLowerCase().indexOf(keyword);
+            if (matchIdx !== -1) {
+                var start = Math.max(0, matchIdx - 15);
+                var end = Math.min(content.length, matchIdx + keyword.length + 15);
+                snippet = content.substring(start, end);
+                var regex = new RegExp('(' + keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ')', 'gi');
+                // 將關鍵字加粗並標示黃底
+                snippet = snippet.replace(regex, '<b style="background-color:rgba(255,212,0,0.5); border-radius:3px;">$1</b>');
+                snippet = (start > 0 ? '...' : '') + snippet + (end < content.length ? '...' : '');
+            } else {
+                snippet = content.substring(0, 30) + '...';
+            }
+
+            html += '<li class="search-result-item"><a href="' + url + '" class="search-result-link">';
+            html += '<div class="search-result-title">' + title + '</div>';
+            html += '<div class="search-result-doc" style="font-size: 0.9em; margin-top: 5px;">' + snippet + '</div>';
+            html += '</a></li>';
+        });
+        html += '</ul>';
+        searchResults.innerHTML = html;
+    });
+
+    // 點擊旁邊空白處時自動隱藏選單
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+    // 點擊搜尋框時再度顯示
+    searchInput.addEventListener('focus', function() {
+        if (searchInput.value.trim()) searchResults.style.display = 'block';
+    });
 });
 </script>
