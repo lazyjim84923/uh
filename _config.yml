@@ -1,8 +1,11 @@
-title: Just the Docs Template
-description: A starter template for a Jeykll site using the Just the Docs theme!
+title: 村民式毒物流TRPG 0.0.1a
+description: 核心規則書與判定指南
 theme: just-the-docs
 
-url: https://just-the-docs.github.io
+# 網站專屬網址 (這是搜尋引擎找對家的關鍵！)
+url: "https://lazyjim84923.github.io"
+baseurl: "/uh"
 
-aux_links:
-  Template Repository: https://github.com/just-the-docs/just-the-docs-template
+# 搜尋功能設定
+search_enabled: true
+search_placeholder_text: "搜尋規則書內容..."
