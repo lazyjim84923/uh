@@ -1,0 +1,57 @@
+<script>
+window.addEventListener('load', function() {
+  if (window.lunr && window.jtd) {
+    // 1. 殺死會把中文當標點符號刪除的笨蛋修剪器
+    window.lunr.trimmer = function(token) { return token; };
+    window.lunr.Pipeline.registerFunction(window.lunr.trimmer, 'trimmer');
+    
+    // 2. 完美的中文分詞器（精準切分中文字，排除隱形空白）
+    window.lunr.tokenizer = function (obj) {
+        if (!arguments.length || obj == null || obj == undefined) return [];
+        if (Array.isArray(obj)) return obj.map(function (t) { return new window.lunr.Token(t.toLowerCase()); });
+
+        var str = obj.toString().toLowerCase();
+        var tokens = [];
+        // 規則：保留英數字，並將中文字「逐字」精準切開
+        var regex = /[a-zA-Z0-9]+|[\u4e00-\u9fa5]/g; 
+        var match;
+        var idx = 0;
+
+        while ((match = regex.exec(str)) !== null) {
+            tokens.push(new window.lunr.Token(match[0], {
+                position: [match.index, match[0].length],
+                index: idx++
+            }));
+        }
+        return tokens;
+    };
+
+    // 3. 重新抓取資料，強制覆蓋模板原本的英文大腦
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/uh/assets/js/search-data.json', true);
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        var docs = JSON.parse(xhr.responseText);
+        window.jtd.searchIndex = window.lunr(function () {
+          this.ref('id');
+          this.field('title', { boost: 200 });
+          this.field('content', { boost: 2 });
+          this.field('relUrl');
+          this.metadataWhitelist = ['position']; // 讓預覽文字正確顯示的關鍵
+          
+          for (var key in docs) {
+            this.add({
+              id: key,
+              title: docs[key].title,
+              content: docs[key].content,
+              relUrl: docs[key].relUrl
+            });
+          }
+        });
+        window.jtd.searchDocs = docs;
+      }
+    };
+    xhr.send();
+  }
+});
+</script>
