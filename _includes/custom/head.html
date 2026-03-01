@@ -1,0 +1,55 @@
+<script>
+// 終極特洛伊木馬：潛入 Just the Docs 內部替換搜尋核心
+window.addEventListener('load', function() {
+    var checkReady = setInterval(function() {
+        // 確認主題的資料庫已經載入完畢
+        if (window.jtd && window.jtd.search && window.jtd.search.docs && window.jtd.search.index) {
+            clearInterval(checkReady);
+
+            // 直接綁架原有的搜尋函式！換成我們的中文直球對決引擎
+            window.jtd.search.index.search = function(query) {
+                var keyword = query.toLowerCase().trim();
+                if (!keyword) return [];
+                
+                var docs = window.jtd.search.docs;
+                var results = [];
+
+                // 用最直覺的「文字包含比對」取代原本會刪除中文的笨蛋引擎
+                for (var key in docs) {
+                    var doc = docs[key];
+                    var content = (doc.content || '').toLowerCase();
+                    var title = (doc.title || '').toLowerCase();
+                    
+                    var matchPos = -1;
+                    var isContentMatch = false;
+
+                    // 先找內文，再找標題
+                    if (content.indexOf(keyword) !== -1) {
+                        matchPos = content.indexOf(keyword);
+                        isContentMatch = true;
+                    } else if (title.indexOf(keyword) !== -1) {
+                        matchPos = title.indexOf(keyword);
+                    }
+
+                    if (matchPos !== -1) {
+                        // 完美偽裝成原本引擎的格式，讓系統能正常顯示精美的預覽畫面與黃色高光！
+                        var mockResult = {
+                            ref: key,
+                            matchData: { metadata: {} }
+                        };
+                        
+                        var field = isContentMatch ? 'content' : 'title';
+                        mockResult.matchData.metadata[keyword] = {};
+                        mockResult.matchData.metadata[keyword][field] = {
+                            position: [[matchPos, keyword.length]]
+                        };
+
+                        results.push(mockResult);
+                    }
+                }
+                return results;
+            };
+        }
+    }, 100);
+});
+</script>
